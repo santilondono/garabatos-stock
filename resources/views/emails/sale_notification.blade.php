@@ -66,7 +66,7 @@
 
     <div class="container">
         <a href="#">
-            <img src="{{ asset('dist/img/garabatos_logo.png') }}" alt="Garabatos_logo" class="logo-img">
+            <img src="https://garabatos-stock.com/dist/img/garabatos_logo.png" alt="Garabatos_logo" class="logo-img">
         </a>
 
         <h2>New sale</h2>
