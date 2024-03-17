@@ -41,7 +41,13 @@ class SaleController extends Controller
         ->select('p.product_reference', 'p.product_description', 'sd.quantity_sold', 'sd.sale_price','p.quantity', DB::raw('sd.quantity_sold * sd.sale_price * p.quantity AS subtotal'))
         ->where('sd.sale_id', '=', $sale_id)
         ->get();
-        Mail::to('santiloo2002@gmail.com','veronicalondolopez@gmail.com')->send(new SaleNotificatiosMailable($sale,$sale_details));
+
+        $admins = [
+            'santiloo2002@gmail.com',
+            'veronicalondolopez@gmail.com'
+        ];
+        
+        Mail::to($admins)->send(new SaleNotificatiosMailable($sale,$sale_details));
     }
 
 
