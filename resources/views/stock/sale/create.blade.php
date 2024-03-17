@@ -43,7 +43,7 @@
                     <div class="col-2">
                         <div class="form-group">
                             <label for="purchase_price">Sale price</label>
-                            <input type="number" name="psale_price" id="psale_price" class="form-control" step="0.01" readonly>
+                            <input type="number" name="psale_price" id="psale_price" class="form-control" step="0.01">
                         </div>
                     </div>
                     <div class="col-1">
