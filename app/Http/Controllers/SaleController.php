@@ -43,8 +43,8 @@ class SaleController extends Controller
         ->get();
 
         $admins = [
-            'santiloo2002@gmail.com',
-            'veronicalondolopez@gmail.com'
+            'camilom@garabatos.com',
+            '2997221689@qq.com'
         ];
         
         Mail::to($admins)->send(new SaleNotificatiosMailable($sale,$sale_details));
