@@ -43,7 +43,7 @@ class SaleController extends Controller
         ->get();
 
         $admins = [
-            'camilom@garabatos.com',
+            'flyon-importexport@outlook.es',
             '2997221689@qq.com'
         ];
         
