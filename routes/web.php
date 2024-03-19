@@ -11,7 +11,7 @@ use App\Http\Controllers\OutputController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\SaleNotificatiosMailable;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -38,10 +38,9 @@ Route::group(['middleware' => 'role:1'], function () {
     Route::resource('stock/products', ProductController::class);
 
     Route::resource('stock/roles', RoleController::class);
-
-    Route::get('stock/sales/show/{sale}', [SaleController::class, 'show'])->name('sales.show');
 });
 
+Route::get('print-sale/{sale_id}', [SaleController::class, 'printSale'])->name('print-sale');
 
 Route::resource('stock-now', StockController::class);
 

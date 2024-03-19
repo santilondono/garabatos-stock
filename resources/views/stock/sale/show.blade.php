@@ -82,16 +82,32 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <a href="{{ route('sales.index') }}" class="btn btn-primary">Back</a>
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                        <a href="{{ route('sales.index') }}" class="btn btn-primary">Back</a>
+                    @endif
+                    @if(Auth::check() && Auth::user()->role_id == 2)
+                        <a href="{{ route('home') }}" class="btn btn-primary">Back</a>
+                    @endif
                     @if(Auth::check() && Auth::user()->role_id == 1)
                         @if(!$sale->is_cancelled)
-                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-delete-{{ $sale->sale_id }}">Cancel Sale</button>
+                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-delete-{{ $sale->sale_id }}">Cancel Sale</button>
                         @endif
                     @endif
+                    <button class="btn btn-dark" onclick="printSaleWindow()">Print</button>
                 </div>
                 @include('stock.sale.modal')
             </div>
         </div>
     </div>
 </div>
+<script>
+    function printSaleWindow() {
+        var tools = "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=800,height=600";
+        var ventana = window.open("{{ route('print-sale', ['sale_id' => $sale->sale_id]) }}", '_blank', tools);
+
+        ventana.onload = function() {
+            ventana.print();
+        }
+    }
+</script>
 @endsection

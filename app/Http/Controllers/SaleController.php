@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon; //Importar Carbon
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SaleNotificatiosMailable;
+use Illuminate\Support\Facades\Response;
 
 class SaleController extends Controller
 {
@@ -26,29 +27,57 @@ class SaleController extends Controller
     public function saleNotification($sale_id)
     {
         $sale = DB::table('sales as s')
-        ->join('clients as c', 's.client_id', '=', 'c.client_id')
-        ->join('sales_detail as sd', 's.sale_id', '=', 'sd.sale_id')
-        ->join('products as p', 'sd.product_id', '=', 'p.product_id')
-        ->join('users as u', 's.user_id', '=', 'u.id')   
-        ->select('s.sale_id', 's.sale_date', 'c.client_name','u.name', 'c.country', 'c.shipping_mark', DB::raw("sum(sd.quantity_sold * sd.sale_price * p.quantity) AS total"), 's.is_cancelled')
-        ->where('s.sale_id', '=', $sale_id)
-        ->groupBy('s.sale_id', 's.sale_date', 'c.client_name', 'c.country', 'c.shipping_mark', 's.is_cancelled','u.name')
-        ->orderBy('s.sale_date', 'desc')
-        ->first();
+            ->join('clients as c', 's.client_id', '=', 'c.client_id')
+            ->join('sales_detail as sd', 's.sale_id', '=', 'sd.sale_id')
+            ->join('products as p', 'sd.product_id', '=', 'p.product_id')
+            ->join('users as u', 's.user_id', '=', 'u.id')
+            ->select('s.sale_id', 's.sale_date', 'c.client_name', 'u.name', 'c.country', 'c.shipping_mark', DB::raw("sum(sd.quantity_sold * sd.sale_price * p.quantity) AS total"), 's.is_cancelled')
+            ->where('s.sale_id', '=', $sale_id)
+            ->groupBy('s.sale_id', 's.sale_date', 'c.client_name', 'c.country', 'c.shipping_mark', 's.is_cancelled', 'u.name')
+            ->orderBy('s.sale_date', 'desc')
+            ->first();
 
         $sale_details = DB::table('sales_detail as sd')
-        ->join('products as p', 'sd.product_id', '=', 'p.product_id')
-        ->select('p.product_reference', 'p.product_description', 'sd.quantity_sold', 'sd.sale_price','p.quantity', DB::raw('sd.quantity_sold * sd.sale_price * p.quantity AS subtotal'))
-        ->where('sd.sale_id', '=', $sale_id)
-        ->get();
+            ->join('products as p', 'sd.product_id', '=', 'p.product_id')
+            ->select('p.product_reference', 'p.product_description', 'sd.quantity_sold', 'sd.sale_price', 'p.quantity', DB::raw('sd.quantity_sold * sd.sale_price * p.quantity AS subtotal'))
+            ->where('sd.sale_id', '=', $sale_id)
+            ->get();
 
         $admins = [
             'flyon-importexport@outlook.es',
             '2997221689@qq.com'
         ];
-        
-        Mail::to($admins)->send(new SaleNotificatiosMailable($sale,$sale_details));
+
+        // $admins = [
+        //     'santiloo2002@gmail.com'
+        // ];
+
+        Mail::to($admins)->send(new SaleNotificatiosMailable($sale, $sale_details));
     }
+
+    public function printSale($sale_id)
+    {
+        $sale = DB::table('sales as s')
+            ->join('clients as c', 's.client_id', '=', 'c.client_id')
+            ->join('sales_detail as sd', 's.sale_id', '=', 'sd.sale_id')
+            ->join('products as p', 'sd.product_id', '=', 'p.product_id')
+            ->join('users as u', 's.user_id', '=', 'u.id')
+            ->select('s.sale_id', 's.sale_date', 'c.client_name', 'u.name', 'c.country', 'c.shipping_mark', DB::raw("sum(sd.quantity_sold * sd.sale_price * p.quantity) AS total"), 's.is_cancelled')
+            ->where('s.sale_id', '=', $sale_id)
+            ->groupBy('s.sale_id', 's.sale_date', 'c.client_name', 'c.country', 'c.shipping_mark', 's.is_cancelled', 'u.name')
+            ->orderBy('s.sale_date', 'desc')
+            ->first();
+
+        $sale_details = DB::table('sales_detail as sd')
+            ->join('products as p', 'sd.product_id', '=', 'p.product_id')
+            ->select('p.product_reference', 'p.product_description', 'sd.quantity_sold', 'sd.sale_price', 'p.quantity', DB::raw('sd.quantity_sold * sd.sale_price * p.quantity AS subtotal'))
+            ->where('sd.sale_id', '=', $sale_id)
+            ->get();
+
+        return view('stock.sale.print', ['sale' => $sale, 'sales_detail' => $sale_details]);
+    }
+
+
 
 
     public function index(Request $request)
@@ -59,7 +88,7 @@ class SaleController extends Controller
             $sales = DB::table('sales')
                 ->join('clients', 'sales.client_id', '=', 'clients.client_id')
                 ->join('sales_detail as sd', 'sales.sale_id', '=', 'sd.sale_id')
-                ->select('sales.sale_id', 'sales.sale_date', 'clients.country','clients.client_name', DB::raw('ROUND(sum(sd.quantity_sold * sd.sale_price * p.quantity),2) as total'), 'sales.is_cancelled')
+                ->select('sales.sale_id', 'sales.sale_date', 'clients.country', 'clients.client_name', DB::raw('ROUND(sum(sd.quantity_sold * sd.sale_price * p.quantity),2) as total'), 'sales.is_cancelled')
                 ->where('clients.client_name', 'LIKE', "%$query%")
                 ->orWhere('sales.sale_id', 'LIKE', "%$query%")
                 ->groupBy('sales.sale_id', 'sales.sale_date', 'clients.country', 'clients.client_name', 'sales.is_cancelled')
@@ -133,15 +162,6 @@ class SaleController extends Controller
                 $product->update();
 
                 $cont++;
-
-                // if ($product->stock < 10 && !$product->notification_sent) {
-                //     // Envía el correo electrónico de notificación
-                //     Mail::to('destinatario@example.com')->send(new LowStockNotification($product));
-    
-                //     // Actualiza el campo notification_sent a true
-                //     $product->notification_sent = true;
-                //     $product->save();
-                // }
             }
 
             DB::commit();
@@ -151,7 +171,7 @@ class SaleController extends Controller
             DB::rollback();
         }
 
-        return Redirect::to('stock/sales');
+        return Redirect::to(route('sales.show', $sale->sale_id));
     }
 
     /**
@@ -163,16 +183,16 @@ class SaleController extends Controller
             ->join('clients as c', 's.client_id', '=', 'c.client_id')
             ->join('sales_detail as sd', 's.sale_id', '=', 'sd.sale_id')
             ->join('products as p', 'sd.product_id', '=', 'p.product_id')
-            ->join('users as u', 's.user_id', '=', 'u.id')   
-            ->select('s.sale_id', 's.sale_date', 'c.client_name','u.name', 'c.country', 'c.shipping_mark', DB::raw("sum(sd.quantity_sold * sd.sale_price * p.quantity) AS total"), 's.is_cancelled')
+            ->join('users as u', 's.user_id', '=', 'u.id')
+            ->select('s.sale_id', 's.sale_date', 'c.client_name', 'u.name', 'c.country', 'c.shipping_mark', DB::raw("sum(sd.quantity_sold * sd.sale_price * p.quantity) AS total"), 's.is_cancelled')
             ->where('s.sale_id', '=', $id)
-            ->groupBy('s.sale_id', 's.sale_date', 'c.client_name', 'c.country', 'c.shipping_mark', 's.is_cancelled','u.name')
+            ->groupBy('s.sale_id', 's.sale_date', 'c.client_name', 'c.country', 'c.shipping_mark', 's.is_cancelled', 'u.name')
             ->orderBy('s.sale_date', 'desc')
             ->first();
 
         $sale_details = DB::table('sales_detail as sd')
             ->join('products as p', 'sd.product_id', '=', 'p.product_id')
-            ->select('p.product_reference', 'p.product_description', 'sd.quantity_sold', 'sd.sale_price','p.quantity', DB::raw('sd.quantity_sold * sd.sale_price * p.quantity AS subtotal'))
+            ->select('p.product_reference', 'p.product_description', 'sd.quantity_sold', 'sd.sale_price', 'p.quantity', DB::raw('sd.quantity_sold * sd.sale_price * p.quantity AS subtotal'))
             ->where('sd.sale_id', '=', $id)
             ->get();
 

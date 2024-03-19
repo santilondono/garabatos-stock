@@ -98,7 +98,7 @@
             </tbody>
         </table>
 
-        <a href="{{ asset('/stock/sales/',$sale->sale_id) }}" class="btn">See sale</a>
+        <a href="{{ route('sales.show',$sale->sale_id) }}" class="btn">See sale</a>
     </div>
 
 </body>
