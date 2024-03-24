@@ -27,11 +27,13 @@ class Product extends Model
         'height',
         'cubic_meter',
         'quantity',
-        'stock'
+        'stock',
+        'active',
     ];
 
     protected $guarded = [
         'gross_revenue',
-        'image'
+        'image',
+        'comming'
     ];
 }

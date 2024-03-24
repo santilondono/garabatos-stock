@@ -52,6 +52,7 @@ class OutputController extends Controller
         $products = DB::table('products as p')
         ->select(DB::raw('CONCAT(p.product_reference, " ", p.product_description) AS product'), 'p.product_id','p.quantity')
         ->where('p.stock', '>', '0')
+        ->where('p.active', true)
         ->get();
 
         return view('stock.output.create', ['products' => $products]);

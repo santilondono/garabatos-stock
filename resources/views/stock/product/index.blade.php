@@ -49,6 +49,7 @@
                                 <thead>
                                     <tr>
                                         <th>Id</th>
+                                        <th>Active</th>
                                         <th>Product reference</th>
                                         <th>Image</th>
                                         <th>List description</th>
@@ -62,6 +63,7 @@
                                         <th>Cubic meter</th>
                                         <th>Quantity</th>
                                         <th>Stock</th>
+                                        <th>Comming</th>
                                         <th>Gross revenue</th>
                                         <th>Actions</th>
                                     </tr>
@@ -70,6 +72,13 @@
                                     @foreach ($products as $product)
                                     <tr>
                                         <td>{{$product->product_id}}</td>
+                                        <td>
+                                            @if($product->active)
+                                            <span class="badge badge-success">Active</span>
+                                            @else
+                                            <span class="badge badge-danger">Inactive</span>
+                                            @endif
+                                        </td>
                                         <td>{{$product->product_reference}}</td>
                                         <td><img src="{{ asset('dist/img/' . $product->image) }}" alt="" width="100"></td>
                                         <td>{{$product->list_description}}</td>
@@ -83,6 +92,7 @@
                                         <td>{{$product->cubic_meter}}</td>
                                         <td>{{$product->quantity}}</td>
                                         <td>{{$product->stock}}</td>
+                                        <td>{{$product->comming}}</td>
                                         <td>{{"¥".$product->gross_revenue}}</td>
                                         <td>
                                             <a href="{{ route('products.edit',$product->product_id) }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i></a>

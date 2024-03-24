@@ -54,6 +54,7 @@
                                         <th>Cubic meter</th>
                                         <th>Quantity</th>
                                         <th>Stock</th>
+                                        <th>Comming</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -72,6 +73,7 @@
                                         <td>{{$product->cubic_meter}}</td>
                                         <td>{{$product->quantity}}</td>
                                         <td>{{$product->stock}}</td>
+                                        <td>{{$product->comming}}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -84,17 +86,4 @@
         </div>
     </div>
 </section>
-@endsection
-
-@section('stock_notifications')
-    @if(count($stockAlerts) == 0)
-        <a href="#" class="dropdown-item">
-            <i class="fas fa-box mr-2"></i> No stock alerts
-        </a>
-    @endif
-    @foreach($stockAlerts as $alert)
-        <a href="#" class="dropdown-item">
-            <i class="fas fa-box mr-2"></i> {{ $alert->product_description }} (Stock: {{ $alert->stock }})
-        </a>
-    @endforeach
 @endsection

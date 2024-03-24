@@ -66,6 +66,7 @@ class ProductController extends Controller
         $product->height = $request->get('height');
         $product->cubic_meter = ($request->get('length') * $request->get('width') * $request->get('height')) / 1000000;
         $product->quantity = $request->get('quantity');
+        $product->active = true;
         $product->stock = 0;
         $product->gross_revenue = 0;
 
@@ -141,7 +142,8 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $product = Product::findOrFail($id);
-        $product->delete();
+        $product->active = false;
+        $product->update();
         return Redirect::to('stock/products');
     }
 }

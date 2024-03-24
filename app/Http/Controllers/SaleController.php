@@ -118,6 +118,7 @@ class SaleController extends Controller
         $products = DB::table('products')
             ->select(DB::raw('CONCAT(product_reference, " ", product_description) AS product'), 'product_id', 'sale_price', 'quantity', 'stock')
             ->where('stock', '>', '0')
+            ->where('active', true)
             ->get();
 
         $clients = DB::table('clients')

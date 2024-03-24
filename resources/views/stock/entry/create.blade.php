@@ -54,6 +54,15 @@
                         </div>
                     </div>
                 </div>
+                <div class="row" style="margin: 10px">
+                    <div class="col-12">
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" id="is_comming" name="is_comming">Is coming
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="row">
                     <div class="col-12">
@@ -84,7 +93,7 @@
 
                 <div class="row">
                     <div class="col-12">
-                        
+
                         <button type="submit" class="btn btn-primary" id="save">Save</button>
                         <a href="{{ route('entries.index') }}" class="btn btn-danger">Cancel</a>
                     </div>

@@ -50,8 +50,9 @@
                                         <th>Id</th>
                                         <th>Date</th>
                                         <th>User</th>
+                                        <th>Is coming</th>
                                         <th>Total purchase</th>
-                                        <th></th>                                        
+                                        <th>Confirm</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -60,11 +61,23 @@
                                         <td>{{$entry->entry_id}}</td>
                                         <td>{{$entry->entry_date}}</td>
                                         <td>{{$entry->name}}</td>
+                                        <td>
+                                            @if ($entry->is_comming)
+                                            <span class="badge badge-success">Yes</span>
+                                            @else
+                                            <span class="badge badge-danger">No</span>
+                                            @endif
+                                        </td>
                                         <td>¥{{$entry->total}}</td>
                                         <td>
+                                            @if ($entry->is_comming)
+                                            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modal-delete-{{ $entry->entry_id }}"><i class="fas fa-check"></i></button>
+                                        
+                                            @endif
                                             <a href="{{ route('entries.show',$entry->entry_id) }}" class="btn btn-primary"><i class="fas fa-eye"></i></a>
                                         </td>
                                     </tr>
+                                    @include('stock.entry.modal')
                                     @endforeach
                                 </tbody>
                             </table>

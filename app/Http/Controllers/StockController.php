@@ -21,12 +21,13 @@ class StockController extends Controller
         if ($query) {
             $products = DB::table('products')
                 ->where('product_description', 'LIKE', '%' . $query . '%')
+                ->where('active', true)
                 ->orWhere('product_reference', 'LIKE', '%' . $query . '%')
                 ->orderBy('product_id', 'asc')
                 ->paginate(5);
         } else {
             // Si no hay texto de búsqueda, obtén todos los productos
-            $products = DB::table('products')->orderBy('product_id', 'asc')->paginate(5);
+            $products = DB::table('products')->where('active',true)->orderBy('product_id', 'asc')->paginate(5);
         }
 
         $stockAlerts = DB::table('products')
