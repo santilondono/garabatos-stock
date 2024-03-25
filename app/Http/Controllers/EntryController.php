@@ -33,7 +33,7 @@ class EntryController extends Controller
             ->select('e.entry_id', 'e.entry_date', 'u.name', 'e.is_comming',DB::raw('ROUND(sum(ed.quantity_entered * ed.purchase_price * p.quantity),2) as total'))
             ->where('e.entry_id', 'LIKE', '%' . $query . '%')
             ->orWhere('u.name', 'LIKE', '%' . $query . '%')
-            ->groupBy('e.entry_id', 'e.entry_date', 'u.name')
+            ->groupBy('e.entry_id', 'e.entry_date', 'u.name', 'e.is_comming')
             ->orderBy('e.entry_date', 'desc')
             ->paginate(5);
         }else{
