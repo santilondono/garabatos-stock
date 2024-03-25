@@ -42,7 +42,7 @@ class EntryController extends Controller
             ->join('entries_detail as ed', 'e.entry_id', '=', 'ed.entry_id')
             ->join('products as p', 'ed.product_id', '=', 'p.product_id')
             ->select('e.entry_id', 'e.entry_date', 'u.name', 'e.is_comming', DB::raw('ROUND(sum(ed.quantity_entered * ed.purchase_price * p.quantity),2) as total'))
-            ->groupBy('e.entry_id', 'e.entry_date', 'u.name')
+            ->groupBy('e.entry_id', 'e.entry_date', 'u.name', 'e.is_comming')
             ->orderBy('e.entry_date', 'desc')
             ->paginate(5);
         }
