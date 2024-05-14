@@ -11,6 +11,7 @@ use App\Http\Controllers\OutputController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\ReportController;
 
 
 /*
@@ -41,6 +42,12 @@ Route::group(['middleware' => 'role:1'], function () {
 });
 
 Route::get('print-sale/{sale_id}', [SaleController::class, 'printSale'])->name('print-sale');
+
+Route::get('stock/print-stock-summary', [ReportController::class, 'stock_summary'])->name('print-stock-summary');
+
+Route::get('stock/print-sales-summary/{start_date?}/{end_date?}', [ReportController::class, 'sales_summary']) ->name('print-sales-summary');
+
+Route::get('stock/cards/', [ReportController::class, 'cards'])->name('stock-cards');
 
 Route::resource('stock-now', StockController::class);
 

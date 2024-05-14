@@ -137,8 +137,16 @@
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item">
+                  <a href="{{ asset('/stock/cards') }}" class="nav-link">
+                    <i class="fas fa-chart-line nav-icon"></i>
+                    <p>Reports</p>
+                  </a>
+                </li>
+              </ul>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
                   <a href="{{ asset('/stock/sales') }}" class="nav-link">
-                    <i class="	fas fa-history nav-icon"></i>
+                    <i class="fas fa-history nav-icon"></i>
                     <p>Sales history</p>
                   </a>
                 </li>
@@ -198,7 +206,7 @@
     <footer class="main-footer">
       <strong>Designed by Santiago L</strong>
       <div class="float-right d-none d-sm-inline-block">
-        <b>Version</b> 1.0.1
+        <b>Version</b> 1.0.2
       </div>
     </footer>
 
