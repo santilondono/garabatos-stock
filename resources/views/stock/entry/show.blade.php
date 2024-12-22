@@ -57,7 +57,7 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <a href="{{ route('entries.index') }}" class="btn btn-primary">Back</a>
+                    <a href="{{ url()->previous() }}" class="btn btn-primary">Back</a>
                 </div>
             </div>
         </div>

@@ -52,6 +52,7 @@
                                         <th>Sale date</th>
                                         <th>Client</th>
                                         <th>Country</th>
+                                        <th>Qty</th>
                                         <th>Total</th>
                                         <th>Is cancelled</th>
                                         <th></th>
@@ -64,6 +65,7 @@
                                         <td>{{$sale->sale_date}}</td>
                                         <td>{{$sale->client_name}}</td>
                                         <td>{{$sale->country}}</td>
+                                        <td>{{$sale->qty}}</td>
                                         <td>¥{{$sale->total}}</td>
                                         <td> @if($sale->is_cancelled)
                                             <span class="badge badge-danger">Cancelled</span>

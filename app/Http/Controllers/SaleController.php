@@ -88,21 +88,21 @@ class SaleController extends Controller
             $sales = DB::table('sales')
                 ->join('clients', 'sales.client_id', '=', 'clients.client_id')
                 ->join('sales_detail as sd', 'sales.sale_id', '=', 'sd.sale_id')
-                ->select('sales.sale_id', 'sales.sale_date', 'clients.country', 'clients.client_name', DB::raw('ROUND(sum(sd.quantity_sold * sd.sale_price * p.quantity),2) as total'), 'sales.is_cancelled')
+                ->select('sales.sale_id', 'sales.sale_date', 'clients.country',DB::raw('sum(sd.quantity_sold) as qty'), 'clients.client_name', DB::raw('ROUND(sum(sd.quantity_sold * sd.sale_price * p.quantity),2) as total'), 'sales.is_cancelled')
                 ->where('clients.client_name', 'LIKE', "%$query%")
                 ->orWhere('sales.sale_id', 'LIKE', "%$query%")
                 ->groupBy('sales.sale_id', 'sales.sale_date', 'clients.country', 'clients.client_name', 'sales.is_cancelled')
                 ->orderBy('sales.sale_date', 'desc')
-                ->paginate(5);
+                ->paginate(10);
         } else {
             $sales = DB::table('sales')
                 ->join('clients', 'sales.client_id', '=', 'clients.client_id')
                 ->join('sales_detail as sd', 'sales.sale_id', '=', 'sd.sale_id')
                 ->join('products as p', 'sd.product_id', '=', 'p.product_id')
-                ->select('sales.sale_id', 'sales.sale_date', 'clients.country', 'clients.client_name', DB::raw('ROUND(sum(sd.quantity_sold * sd.sale_price * p.quantity),2) as total'), 'sales.is_cancelled')
+                ->select('sales.sale_id', 'sales.sale_date', 'clients.country',DB::raw('sum(sd.quantity_sold) as qty'), 'clients.client_name', DB::raw('ROUND(sum(sd.quantity_sold * sd.sale_price * p.quantity),2) as total'), 'sales.is_cancelled')
                 ->groupBy('sales.sale_id', 'sales.sale_date', 'clients.country', 'clients.client_name', 'sales.is_cancelled')
                 ->orderBy('sales.sale_date', 'desc')
-                ->paginate(5);
+                ->paginate(10);
         }
 
         return view('stock.sale.index', ['sales' => $sales, 'searchText' => $query]);

@@ -35,7 +35,7 @@ class EntryController extends Controller
             ->orWhere('u.name', 'LIKE', '%' . $query . '%')
             ->groupBy('e.entry_id', 'e.entry_date', 'u.name', 'e.is_comming')
             ->orderBy('e.entry_date', 'desc')
-            ->paginate(5);
+            ->paginate(10);
         }else{
             $entries = DB::table('entries as e')
             ->join('users as u', 'e.user_id', '=', 'u.id')
@@ -44,7 +44,7 @@ class EntryController extends Controller
             ->select('e.entry_id', 'e.entry_date', 'u.name', 'e.is_comming', DB::raw('ROUND(sum(ed.quantity_entered * ed.purchase_price * p.quantity),2) as total'))
             ->groupBy('e.entry_id', 'e.entry_date', 'u.name', 'e.is_comming')
             ->orderBy('e.entry_date', 'desc')
-            ->paginate(5);
+            ->paginate(10);
         }
 
         return view('stock.entry.index', ['entries' => $entries, 'searchText' => $query]);

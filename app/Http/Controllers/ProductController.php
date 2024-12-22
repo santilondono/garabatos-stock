@@ -30,10 +30,10 @@ class ProductController extends Controller
                 ->where('product_description', 'LIKE', '%' . $query . '%')
                 ->orWhere('product_reference', 'LIKE', '%' . $query . '%')
                 ->orderBy('product_id', 'asc')
-                ->paginate(5);
+                ->paginate(20);
         } else {
             // Si no hay texto de búsqueda, obtén todos los productos
-            $products = DB::table('products')->orderBy('product_id', 'asc')->paginate(5);
+            $products = DB::table('products')->orderBy('product_id', 'asc')->paginate(20);
         }
 
         return view('stock.product.index', ['products' => $products, 'searchText' => $query]);

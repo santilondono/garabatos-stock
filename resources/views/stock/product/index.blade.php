@@ -89,7 +89,7 @@
                                         <td>{{$product->length}}</td>
                                         <td>{{$product->width}}</td>
                                         <td>{{$product->height}}</td>
-                                        <td>{{$product->cubic_meter}}</td>
+                                        <td>{{ number_format($product->cubic_meter, 3) }}</td>
                                         <td>{{$product->quantity}}</td>
                                         <td>{{$product->stock}}</td>
                                         <td>{{$product->comming}}</td>
@@ -104,6 +104,15 @@
                                 </tbody>
                             </table>
                             {{$products->links()}}
+                            <div class="d-flex justify-content-end mt-2">
+                                <form action="{{ route('products.index') }}" method="get" class="d-flex align-items-center">
+                                    <input type="hidden" name="searchText" value="{{ $searchText }}">
+                                    <label for="page" class="me-2">Go to page:</label>
+                                    <input type="number" id="page" name="page" class="form-control me-2" style="width: 80px;"
+                                        min="1" max="{{ $products->lastPage() }}" value="{{ $products->currentPage() }}">
+                                    <button class="btn btn-primary">Go</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>

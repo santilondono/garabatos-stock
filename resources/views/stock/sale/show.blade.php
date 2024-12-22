@@ -83,15 +83,15 @@
             <div class="row">
                 <div class="col-12">
                     @if(Auth::check() && Auth::user()->role_id == 1)
-                        <a href="{{ route('sales.index') }}" class="btn btn-primary">Back</a>
+                    <a href="{{ url()->previous() }}" class="btn btn-primary">Back</a>
                     @endif
                     @if(Auth::check() && Auth::user()->role_id == 2)
-                        <a href="{{ route('home') }}" class="btn btn-primary">Back</a>
+                    <a href="{{ route('home') }}" class="btn btn-primary">Back</a>
                     @endif
                     @if(Auth::check() && Auth::user()->role_id == 1)
-                        @if(!$sale->is_cancelled)
-                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-delete-{{ $sale->sale_id }}">Cancel Sale</button>
-                        @endif
+                    @if(!$sale->is_cancelled)
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-delete-{{ $sale->sale_id }}">Cancel Sale</button>
+                    @endif
                     @endif
                     <button class="btn btn-dark" onclick="printSaleWindow()">Print</button>
                 </div>
