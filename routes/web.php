@@ -29,7 +29,7 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::group(['middleware' => 'role:1'], function () {
+Route::group(['middleware' => 'role:1,3'], function () {
     Route::resource('security/users', UserController::class);
 
     Route::resource('stock/outputs', OutputController::class);

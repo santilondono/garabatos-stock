@@ -97,6 +97,7 @@
                 </p>
               </a>
             </li>
+            @if(Auth::check() && Auth::user()->role_id != 3)
             <li class="nav-item">
               <a href="{{ asset('/stock/sales/create') }}" class="nav-link active">
                 <i class="fas fa-cart-plus nav-icon"></i>
@@ -126,7 +127,8 @@
                 </li>
               </ul>
             </li>
-            @if(Auth::check() && Auth::user()->role_id == 1)
+            @endif
+            @if(Auth::check() && (Auth::user()->role_id == 1 || Auth::user()->role_id == 3))
             <li class="nav-item">
               <a href="#" class="nav-link">
                 <i class="nav-icon 	fas fa-user-cog"></i>
@@ -143,6 +145,7 @@
                   </a>
                 </li>
               </ul>
+              @if(Auth::check() && Auth::user()->role_id == 1)
               <ul class="nav nav-treeview">
                 <li class="nav-item">
                   <a href="{{ asset('/stock/sales') }}" class="nav-link">
@@ -183,6 +186,7 @@
                   </a>
                 </li>
               </ul>
+              @endif
             </li>
             @endif
           </ul>
@@ -206,7 +210,7 @@
     <footer class="main-footer">
       <strong>Designed by Santiago L</strong>
       <div class="float-right d-none d-sm-inline-block">
-        <b>Version</b> 1.0.3
+        <b>Version</b> 1.0.4
       </div>
     </footer>
 

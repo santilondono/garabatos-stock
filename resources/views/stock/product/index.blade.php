@@ -32,10 +32,23 @@
                                             <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Search</button>
                                         </div>
                                     </div>
+
+                                    <!-- Filtros como Checkboxes -->
                                     <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
                                         <div class="input-group mb-6">
-                                            <a href="{{route('products.create')}}" class="btn btn-success">New</a>
-                                            <button class="btn btn-info" style="margin-left: 10px;"><span class="fas fa-redo-alt"></span></button>
+                                            <!-- Filtro de Comming > 0 -->
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="filterComming" value="1" {{ $filterComming ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="filterComming">Is Comming</label>
+                                            </div>
+
+                                            <!-- Filtro de Stock > 10 -->
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="filterStock" value="1" {{ $filterStock ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="filterStock">Low Stock</label>
+                                            </div>
+
+                                            <button class="btn btn-info" type="submit" style="margin-left: 10px;"><span class="fas fa-redo-alt"></span></button>
                                         </div>
                                     </div>
                                 </div>
@@ -103,7 +116,7 @@
                                     @endforeach
                                 </tbody>
                             </table>
-                            {{$products->links()}}
+                            {{$products->appends(['searchText' => $searchText, 'filterComming' => $filterComming, 'filterStock' => $filterStock])->links()}}
                             <div class="d-flex justify-content-end mt-2">
                                 <form action="{{ route('products.index') }}" method="get" class="d-flex align-items-center">
                                     <input type="hidden" name="searchText" value="{{ $searchText }}">

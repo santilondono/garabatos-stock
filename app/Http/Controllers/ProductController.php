@@ -22,22 +22,34 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        
         $query = $request->input('searchText');
-
-        if ($query) {
-            $products = DB::table('products')
-                ->where('product_description', 'LIKE', '%' . $query . '%')
-                ->orWhere('product_reference', 'LIKE', '%' . $query . '%')
-                ->orderBy('product_id', 'asc')
-                ->paginate(20);
-        } else {
-            // Si no hay texto de búsqueda, obtén todos los productos
-            $products = DB::table('products')->orderBy('product_id', 'asc')->paginate(20);
-        }
-
-        return view('stock.product.index', ['products' => $products, 'searchText' => $query]);
+        $filterComming = $request->has('filterComming') && $request->input('filterComming') == '1';  // Verifica si el filtro de comming está marcado
+        $filterStock = $request->has('filterStock') && $request->input('filterStock') == '1';  // Verifica si el filtro de stock está marcado
+    
+        $products = DB::table('products')
+            ->when($query, function ($queryBuilder) use ($query) {
+                return $queryBuilder->where('product_description', 'LIKE', '%' . $query . '%')
+                    ->orWhere('product_reference', 'LIKE', '%' . $query . '%');
+            })
+            ->when($filterComming, function ($queryBuilder) {
+                return $queryBuilder->where('comming', '>', 0);
+            })
+            ->when($filterStock, function ($queryBuilder) {
+                return $queryBuilder->where('stock', '<', 10);
+            })
+            ->orderBy('product_id', 'asc')
+            ->paginate(20);
+    
+        return view('stock.product.index', [
+            'products' => $products,
+            'searchText' => $query,
+            'filterComming' => $filterComming,
+            'filterStock' => $filterStock,
+        ]);
     }
+     
+     
+     
 
     /**
      * Show the form for creating a new resource.
