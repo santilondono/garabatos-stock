@@ -81,10 +81,10 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="5">Total</th>
-                                    <th id="total">
-                                        <h4>¥0.00</h4>
-                                    </th>
+                                    <th colspan="3">Total</th>
+                                    <th id="total_entry"><h4>0</h4></th> <!-- Total de "Entry" -->
+                                    <th></th>
+                                    <th id="total"><h4>¥0.00</h4></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -93,7 +93,6 @@
 
                 <div class="row">
                     <div class="col-12">
-
                         <button type="submit" class="btn btn-primary" id="save">Save</button>
                         <a href="{{ route('entries.index') }}" class="btn btn-danger">Cancel</a>
                     </div>
@@ -102,18 +101,19 @@
         </form>
     </div>
 </div>
+
 @push('scripts')
 <script>
     $(document).ready(function() {
         $('#add').click(function() {
             add();
         });
-
     });
 
     var cont = 0;
     var subtotal = [];
-    total = 0;
+    var total = 0;
+    var total_entry = 0; // Total de la columna "Entry"
 
     function reset() {
         $('#select_product_id').selectpicker('val', '');
@@ -130,41 +130,49 @@
     }
 
     function showProductData() {
-        data = document.getElementById('select_product_id').value.split('_');
+        let data = document.getElementById('select_product_id').value.split('_');
         $('#ppurchase_price').val(data[2]);
     }
 
     function remove(index) {
-        total = total - subtotal[index];
+        total -= parseFloat(subtotal[index]);
+        total = parseFloat(total).toFixed(2); // Redondear total después de la resta
+        total_entry -= parseInt($('#row' + index + ' td:nth-child(4)').text());
+
         $('#total').html('<h4>¥' + total + '</h4>');
+        $('#total_entry').html('<h4>' + total_entry + '</h4>'); // Actualizar el total de "Entry"
         $('#row' + index).remove();
         validate();
     }
 
     function add() {
-        data = document.getElementById('select_product_id').value.split('_');
+        let data = document.getElementById('select_product_id').value.split('_');
 
-        product_id = data[0];
-        product = $('#select_product_id option:selected').text();
-        qty = data[1];
-        quantity = $('#pquantity_entered').val();
-        purchase_price = $('#ppurchase_price').val();
+        let product_id = data[0];
+        let product = $('#select_product_id option:selected').text();
+        let qty = data[1];
+        let quantity = $('#pquantity_entered').val();
+        let purchase_price = $('#ppurchase_price').val();
 
-        if (product_id != '' && quantity != '' && quantity > 0 && purchase_price != '') {
-            subtotal[cont] = (quantity * purchase_price * qty);
-            total = total + subtotal[cont];
+        if (product_id !== '' && quantity !== '' && quantity > 0 && purchase_price !== '') {
+            subtotal[cont] = parseFloat(quantity * purchase_price * qty).toFixed(2); // Redondear a 2 decimales
+            total += parseFloat(subtotal[cont]);
+            total = parseFloat(total).toFixed(2);
 
-            var row = '<tr class="selected" id="row' + cont + '">\n\
+            total_entry += parseInt(quantity); // Sumar la cantidad ingresada al total de "Entry"
+
+            let row = '<tr class="selected" id="row' + cont + '">\n\
                 <td><button type="button" class="btn btn-warning" onclick="remove(' + cont + ');">Remove</button></td>\n\
                 <td><input type="hidden" name="product_id[]" value="' + product_id + '">' + product + '</td>\n\
                 <td><input type="hidden" name="qty" value="' + qty + '">' + qty + '</td>\n\
                 <td><input type="hidden" name="quantity_entered[]" value="' + quantity + '">' + quantity + '</td>\n\
-                <td><input type="hidden" name="purchase_price[]" value="' + purchase_price + '">¥' + purchase_price + '</td>\n\
+                <td><input type="hidden" name="purchase_price[]" value="' + purchase_price + '">¥' + parseFloat(purchase_price).toFixed(2) + '</td>\n\
                 <td>¥' + subtotal[cont] + '</td></tr>';
 
             cont++;
             reset();
             $('#total').html('<h4>¥' + total + '</h4>');
+            $('#total_entry').html('<h4>' + total_entry + '</h4>'); // Actualizar el total de "Entry"
             validate();
             $('#entry_details').append(row);
         } else {

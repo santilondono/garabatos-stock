@@ -34,21 +34,31 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $total_entry = 0; // Variable para calcular total de "Entry"
+                            @endphp
                             @foreach($entries_detail as $detail)
+                            @php
+                                $total_entry += $detail->quantity_entered; // Sumar al total
+                            @endphp
                             <tr>
                                 <td>{{$detail->product_reference}} {{$detail->product_description}}</td>
                                 <td>{{$detail->quantity}}</td>
                                 <td>{{$detail->quantity_entered}}</td>
-                                <td>¥{{$detail->purchase_price}}</td>
-                                <td>¥{{$detail->subtotal}}</td>
+                                <td>¥{{ number_format($detail->purchase_price, 2) }}</td>
+                                <td>¥{{ number_format($detail->subtotal, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th colspan="4">Total</th>
+                                <th colspan="2">Total</th>
+                                <th id="total_entry">
+                                    <h4>{{$total_entry}}</h4>
+                                </th>
+                                <th></th>
                                 <th id="total">
-                                    <h4>¥{{$entry->total}}</h4>
+                                    <h4>¥{{ number_format($entry->total, 2) }}</h4>
                                 </th>
                             </tr>
                         </tfoot>
