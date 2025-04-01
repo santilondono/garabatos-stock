@@ -128,7 +128,7 @@
               </ul>
             </li>
             @endif
-            @if(Auth::check() && (Auth::user()->role_id == 1 || Auth::user()->role_id == 3))
+            @if(Auth::check() && (Auth::user()->role_id == 1 || Auth::user()->role_id == 3 || Auth::user()->role_id == 4))
             <li class="nav-item">
               <a href="#" class="nav-link">
                 <i class="nav-icon 	fas fa-user-cog"></i>
@@ -145,7 +145,7 @@
                   </a>
                 </li>
               </ul>
-              @if(Auth::check() && Auth::user()->role_id == 1)
+              @if(Auth::check() && (Auth::user()->role_id == 1|| Auth::user()->role_id == 4))
               <ul class="nav nav-treeview">
                 <li class="nav-item">
                   <a href="{{ asset('/stock/sales') }}" class="nav-link">
@@ -208,7 +208,6 @@
     </div>
     <!-- /.content-wrapper -->
     <footer class="main-footer">
-      <strong>Designed by Santiago L</strong>
       <div class="float-right d-none d-sm-inline-block">
         <b>Version</b> 1.0.4
       </div>

@@ -29,16 +29,16 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::group(['middleware' => 'role:1,3'], function () {
+Route::group(['middleware' => 'role:1,3,4'], function () {
     Route::resource('security/users', UserController::class);
-
     Route::resource('stock/outputs', OutputController::class);
-
     Route::resource('stock/entries', EntryController::class);
-
     Route::resource('stock/products', ProductController::class);
-
     Route::resource('stock/roles', RoleController::class);
+});
+
+Route::group(['middleware' => 'role:3,4'], function () {
+    Route::get('stock/cards', [ReportController::class, 'cards'])->name('stock-cards');
 });
 
 Route::get('print-sale/{sale_id}', [SaleController::class, 'printSale'])->name('print-sale');
@@ -46,8 +46,6 @@ Route::get('print-sale/{sale_id}', [SaleController::class, 'printSale'])->name('
 Route::get('stock/print-stock-summary', [ReportController::class, 'stock_summary'])->name('print-stock-summary');
 
 Route::get('stock/print-sales-summary/{start_date?}/{end_date?}', [ReportController::class, 'sales_summary']) ->name('print-sales-summary');
-
-Route::get('stock/cards/', [ReportController::class, 'cards'])->name('stock-cards');
 
 Route::resource('stock-now', StockController::class);
 

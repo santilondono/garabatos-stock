@@ -110,7 +110,6 @@
         });
     });
 
-    var cont = 0;
     var subtotal = [];
     var total = 0;
     var total_entry = 0; // Total de la columna "Entry"
@@ -135,13 +134,17 @@
     }
 
     function remove(index) {
-        total -= parseFloat(subtotal[index]);
-        total = parseFloat(total).toFixed(2); // Redondear total después de la resta
-        total_entry -= parseInt($('#row' + index + ' td:nth-child(4)').text());
+        let row = $('#row' + index);
+        let entryValue = parseInt(row.find('td:nth-child(4)').text()); // Obtener el Entry antes de eliminar
+        let subTotalValue = parseFloat(row.find('td:nth-child(6)').text().replace('¥', '')); // Obtener el subtotal antes de eliminar
 
-        $('#total').html('<h4>¥' + total + '</h4>');
-        $('#total_entry').html('<h4>' + total_entry + '</h4>'); // Actualizar el total de "Entry"
-        $('#row' + index).remove();
+        total -= subTotalValue;
+        total_entry -= entryValue;
+
+        $('#total').html('<h4>¥' + total.toFixed(2) + '</h4>');
+        $('#total_entry').html('<h4>' + total_entry + '</h4>');
+
+        row.remove();
         validate();
     }
 
@@ -150,31 +153,31 @@
 
         let product_id = data[0];
         let product = $('#select_product_id option:selected').text();
-        let qty = data[1];
+        let qty = data[1];  // Cantidad en stock (no se usa en el subtotal)
         let quantity = $('#pquantity_entered').val();
         let purchase_price = $('#ppurchase_price').val();
 
         if (product_id !== '' && quantity !== '' && quantity > 0 && purchase_price !== '') {
-            subtotal[cont] = parseFloat(quantity * purchase_price * qty).toFixed(2); // Redondear a 2 decimales
-            total += parseFloat(subtotal[cont]);
-            total = parseFloat(total).toFixed(2);
+            let index = $('tbody tr').length; // Usar cantidad de filas en la tabla
+            let subTotalValue = parseFloat(quantity * purchase_price * qty);
 
-            total_entry += parseInt(quantity); // Sumar la cantidad ingresada al total de "Entry"
+            subtotal[index] = subTotalValue;
+            total += subTotalValue;
+            total_entry += parseInt(quantity);
 
-            let row = '<tr class="selected" id="row' + cont + '">\n\
-                <td><button type="button" class="btn btn-warning" onclick="remove(' + cont + ');">Remove</button></td>\n\
+            let row = '<tr class="selected" id="row' + index + '">\n\
+                <td><button type="button" class="btn btn-warning" onclick="remove(' + index + ');">Remove</button></td>\n\
                 <td><input type="hidden" name="product_id[]" value="' + product_id + '">' + product + '</td>\n\
                 <td><input type="hidden" name="qty" value="' + qty + '">' + qty + '</td>\n\
                 <td><input type="hidden" name="quantity_entered[]" value="' + quantity + '">' + quantity + '</td>\n\
                 <td><input type="hidden" name="purchase_price[]" value="' + purchase_price + '">¥' + parseFloat(purchase_price).toFixed(2) + '</td>\n\
-                <td>¥' + subtotal[cont] + '</td></tr>';
+                <td>¥' + subTotalValue.toFixed(2) + '</td></tr>';
 
-            cont++;
             reset();
-            $('#total').html('<h4>¥' + total + '</h4>');
-            $('#total_entry').html('<h4>' + total_entry + '</h4>'); // Actualizar el total de "Entry"
+            $('#total').html('<h4>¥' + total.toFixed(2) + '</h4>');
+            $('#total_entry').html('<h4>' + total_entry + '</h4>');
             validate();
-            $('#entry_details').append(row);
+            $('#entry_details tbody').append(row);
         } else {
             alert('Error: Check the entered data');
         }

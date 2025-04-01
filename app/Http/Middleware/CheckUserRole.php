@@ -15,12 +15,12 @@ class CheckUserRole
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
 
-    public function handle($request, Closure $next, $role)
-    {
-        if (Auth::check() && Auth::user()->role_id == $role) {
-            return $next($request);
-        }
-
-        abort(403, 'Access denied.');
-    }
+     public function handle($request, Closure $next, ...$roles)
+     {
+         if (Auth::check() && in_array(Auth::user()->role_id, $roles)) {
+             return $next($request);
+         }
+ 
+         abort(403, 'Access denied.');
+     }
 }
