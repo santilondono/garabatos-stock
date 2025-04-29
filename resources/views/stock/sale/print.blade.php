@@ -89,13 +89,14 @@
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="1">Total Quantity</th>
+                                        <th>Total Quantity</th>
                                         <th id="total_quantity">
-                                            <h4>
-                                                {{ $sales_detail->sum('quantity') }}  {{-- Suma de la columna "Quantity" --}}
-                                            </h4>
+                                            <h4>{{ $sales_detail->sum('quantity') }}</h4>
                                         </th>
-                                        <th colspan="2">Total</th>
+                                        <th>Total Sale</th>
+                                        <th id="total_sale">
+                                            <h4>{{ $sales_detail->sum('quantity_sold') }}</h4>
+                                        </th>
                                         <th id="total">
                                             <h4>¥{{ $sale->total }}</h4>
                                         </th>

@@ -76,7 +76,15 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="5">Total</th>
+                                    <th></th>
+                                    <th>Total Quantity</th>
+                                    <th id="total_quantity">
+                                        <h4>0</h4>
+                                    </th>
+                                    <th id="total_sale">
+                                        <h4>0</h4>
+                                    </th>
+                                    <th>Total Sale</th>
                                     <th id="total">
                                         <h4>¥0.00</h4>
                                     </th>
@@ -112,6 +120,8 @@
 
     var cont = 0;
     var subtotal = [];
+    var total_quantity = 0;
+    var total_sale = 0;
     total = 0;
 
     function reset() {
@@ -137,9 +147,19 @@
     }
 
     function remove(index) {
+        var row = $('#row' + index);
+        var qty = parseInt(row.find('td:eq(2)').text());
+        var sale = parseInt(row.find('td:eq(3)').text());
+
         total = total - subtotal[index];
-        $('#total').html('<h4>¥' + total + '</h4>');
-        $('#row' + index).remove();
+        total_quantity = total_quantity - qty;
+        total_sale = total_sale - sale;
+
+        $('#total').html('<h4>¥' + total.toFixed(2) + '</h4>');
+        $('#total_quantity').html('<h4>' + total_quantity + '</h4>');
+        $('#total_sale').html('<h4>' + total_sale + '</h4>');
+
+        row.remove();
         validate();
     }
 
@@ -158,23 +178,30 @@
             total = total + subtotal[cont];
             total = parseFloat(total.toFixed(2));
 
+            // NUEVO: sumamos las cantidades
+            total_quantity += parseInt(qty);
+            total_sale += parseInt(quantity);
+
             var row = '<tr class="selected" id="row' + cont + '">\n\
                 <td><button type="button" class="btn btn-warning" onclick="remove(' + cont + ');">Remove</button></td>\n\
                 <td><input type="hidden" name="product_id[]" value="' + product_id + '">' + product + '</td>\n\
-                <td><input type="hidden" name="qty" value="' + qty + '">' + qty + '</td>\n\
+                <td><input type="hidden" name="qty[]" value="' + qty + '">' + qty + '</td>\n\
                 <td><input type="hidden" name="quantity_sold[]" value="' + quantity + '">' + quantity + '</td>\n\
                 <td><input type="hidden" name="sale_price[]" value="' + sale_price + '">¥' + sale_price + '</td>\n\
                 <td>¥' + subtotal[cont].toFixed(2) + '</td></tr>';
 
             cont++;
             reset();
-            $('#total').html('<h4>¥' + total + '</h4>');
+            $('#total').html('<h4>¥' + total.toFixed(2) + '</h4>');
+            $('#total_quantity').html('<h4>' + total_quantity + '</h4>');
+            $('#total_sale').html('<h4>' + total_sale + '</h4>');
             validate();
-            $('#sale_details').append(row);
+            $('#sale_details tbody').append(row);
         } else {
             alert('Error: Check the entered data');
         }
     }
+
 
     $('#save').hide();
     $('#select_product_id').change(showProductData);
