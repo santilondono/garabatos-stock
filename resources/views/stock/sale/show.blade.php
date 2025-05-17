@@ -71,9 +71,9 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th colspan="1">Total Quantity</th>
-                                <th id="total_quantity">
-                                    <h4>{{ $sales_detail->sum('quantity') }}</h4>
+                                <th colspan="1">Total</th>
+                                <th>
+                                   
                                 </th>
                                 <th>Total Sale</th>
                                 <th id="total_sale">

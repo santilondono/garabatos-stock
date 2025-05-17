@@ -77,9 +77,9 @@
                             <tfoot>
                                 <tr>
                                     <th></th>
-                                    <th>Total Quantity</th>
-                                    <th id="total_quantity">
-                                        <h4>0</h4>
+                                    <th>Total</th>
+                                    <th>
+                                        
                                     </th>
                                     <th id="total_sale">
                                         <h4>0</h4>
