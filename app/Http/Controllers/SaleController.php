@@ -222,8 +222,17 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
 
-            // Obtener la venta y detalles asociados
-            $sale = Sale::findOrFail($id);
+            // Obtener la venta bloqueando la fila, para que dos cancelaciones
+            // simultáneas no devuelvan el stock dos veces
+            $sale = Sale::lockForUpdate()->findOrFail($id);
+
+            // Si ya estaba anulada, no se vuelve a tocar el stock
+            if ($sale->is_cancelled) {
+                DB::commit();
+
+                return Redirect::to('stock/sales');
+            }
+
             $saleDetails = SaleDetail::where('sale_id', $id)->get();
 
             // Anular la venta

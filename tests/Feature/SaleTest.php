@@ -114,10 +114,8 @@ class SaleTest extends FeatureTestCase
         $this->assertEquals(100 * 2 * 10, (float) $this->product($p1)->gross_revenue);
     }
 
-    public function test_destroy_on_already_cancelled_sale_restores_stock_again(): void
+    public function test_destroy_on_already_cancelled_sale_does_not_change_stock(): void
     {
-        // Comportamiento actual: no se verifica si la venta ya estaba anulada,
-        // así que anular dos veces devuelve el stock dos veces.
         $user = $this->createUser(self::ROLE_1);
         $clientId = $this->createClient();
         $p1 = $this->createProduct(['stock' => 98]);
@@ -127,9 +125,14 @@ class SaleTest extends FeatureTestCase
 
         $this->actingAs($user);
         $this->delete("/stock/sales/{$saleId}");
-        $this->delete("/stock/sales/{$saleId}");
+        $productAfterFirst = $this->product($p1);
 
-        $this->assertSame(102, (int) $this->product($p1)->stock);
+        $this->delete("/stock/sales/{$saleId}")->assertRedirect('/stock/sales');
+
+        $productAfterSecond = $this->product($p1);
+        $this->assertSame(100, (int) $productAfterSecond->stock);
+        $this->assertEquals($productAfterFirst, $productAfterSecond);
+        $this->assertSame(1, (int) DB::table('sales')->where('sale_id', $saleId)->value('is_cancelled'));
     }
 
     public function test_cancelled_sale_is_excluded_from_sales_summary_report(): void
