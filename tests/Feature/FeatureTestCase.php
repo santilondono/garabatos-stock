@@ -43,7 +43,8 @@ abstract class FeatureTestCase extends TestCase
 
     protected function ensureRoles(): void
     {
-        foreach ([1 => 'Role 1', 2 => 'Role 2', 3 => 'Role 3', 4 => 'Role 4'] as $id => $description) {
+        // Mismos roles que en producción.
+        foreach ([1 => 'admin', 2 => 'user', 3 => 'guest', 4 => 'manager'] as $id => $description) {
             if (! DB::table('roles')->where('id', $id)->exists()) {
                 DB::table('roles')->insert(['id' => $id, 'role_description' => $description]);
             }

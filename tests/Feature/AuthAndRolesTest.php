@@ -122,13 +122,16 @@ class AuthAndRolesTest extends FeatureTestCase
         $this->get('/security/users')->assertOk();
     }
 
-    public function test_roles_index_currently_errors_for_allowed_role(): void
+    public function test_roles_index_lists_the_four_roles_for_allowed_role(): void
     {
-        // Comportamiento actual: RoleController@index ordena por `role_id`,
-        // pero la columna real es `roles.id`, así que la consulta falla (500).
-        $this->actingAs($this->createUser(self::ROLE_1))
+        $response = $this->actingAs($this->createUser(self::ROLE_1))
             ->get('/stock/roles')
-            ->assertStatus(500);
+            ->assertOk()
+            ->assertSeeInOrder(['<td>admin</td>', '<td>user</td>', '<td>guest</td>', '<td>manager</td>'], false);
+
+        $roles = collect($response->viewData('roles')->items());
+        $this->assertSame([1, 2, 3, 4], $roles->pluck('id')->map(fn ($v) => (int) $v)->all());
+        $this->assertSame(['admin', 'user', 'guest', 'manager'], $roles->pluck('role_description')->all());
     }
 
     public function test_roles_3_and_4_can_access_cards_report(): void

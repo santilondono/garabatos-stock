@@ -24,11 +24,11 @@ class RoleController extends Controller
         if ($query) {
             $roles = DB::table('roles')
                 ->where('role_description', 'LIKE', '%' . $query . '%')
-                ->orderBy('role_id', 'asc')
+                ->orderBy('id', 'asc')
                 ->paginate(5);
         } else {
             // Si no hay texto de búsqueda, obtén todos los roles
-            $roles = DB::table('roles')->orderBy('role_id', 'asc')->paginate(5);
+            $roles = DB::table('roles')->orderBy('id', 'asc')->paginate(5);
         }
     
         return view('stock.role.index', ['roles' => $roles, 'searchText' => $query]);
@@ -67,7 +67,7 @@ class RoleController extends Controller
      */
     public function edit(string $id)
     {
-        return view('stock.roles.edit', ['role' => Role::findOrFail($id)]);
+        return view('stock.role.edit', ['role' => Role::findOrFail($id)]);
     }
 
     /**

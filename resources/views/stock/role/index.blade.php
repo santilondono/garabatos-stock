@@ -55,20 +55,16 @@
                                 <tbody>
                                     @foreach ($roles as $role)
                                     <tr>
-                                        <td>{{$role->role_id}}</td>
+                                        <td>{{$role->id}}</td>
                                         <td>{{$role->role_description}}</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a href="#" class="btn btn-primary"><i class="fas fa-pencil-alt"></i> Editar</a>
-
-                                                <form action="#" method="post">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Eliminar</button>
-                                                </form>
+                                                <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i> Editar</a>
+                                                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-delete-{{ $role->id }}"><i class="fas fa-trash-alt"></i> Eliminar</button>
                                             </div>
                                         </td>
                                     </tr>
+                                    @include('stock.role.modal')
                                     @endforeach
                                 </tbody>
                             </table>
