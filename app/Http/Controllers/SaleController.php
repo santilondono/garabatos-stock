@@ -133,6 +133,8 @@ class SaleController extends Controller
      */
     public function store(SaleFormRequest $request)
     {
+        $negative_stock = [];
+
         try {
             DB::beginTransaction();
             $sale = new Sale();
@@ -148,6 +150,8 @@ class SaleController extends Controller
             $sale_price = $request->get('sale_price');
 
             $cont = 0;
+            $stock_before = [];
+            $sold_products = [];
 
             while ($cont < count($product_id)) {
                 $sale_detail = new SaleDetail();
@@ -158,21 +162,46 @@ class SaleController extends Controller
                 $sale_detail->save();
 
                 $product = Product::find($product_id[$cont]);
+
+                // Stock antes de la venta (la primera vez que aparece el producto)
+                if (!array_key_exists($product->product_id, $stock_before)) {
+                    $stock_before[$product->product_id] = $product->stock;
+                }
+
                 $product->stock = $product->stock - $quantity[$cont];
                 $product->gross_revenue = $product->stock * $product->purchase_price * $product->quantity;
                 $product->update();
+
+                $sold_products[$product->product_id] = $product;
 
                 $cont++;
             }
 
             DB::commit();
 
+            // Productos que quedaron con stock negativo tras la venta
+            foreach ($sold_products as $id => $product) {
+                if ($product->stock < 0) {
+                    $negative_stock[] = [
+                        'product_reference' => $product->product_reference,
+                        'stock_before' => (int) $stock_before[$id],
+                        'stock_after' => (int) $product->stock,
+                    ];
+                }
+            }
+
             $this->saleNotification($sale->sale_id);
         } catch (\Exception $e) {
             DB::rollback();
         }
 
-        return Redirect::to(route('sales.show', $sale->sale_id));
+        $redirect = Redirect::to(route('sales.show', $sale->sale_id));
+
+        if (!empty($negative_stock)) {
+            $redirect->with('negative_stock_warning', $negative_stock);
+        }
+
+        return $redirect;
     }
 
     /**

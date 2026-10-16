@@ -7,6 +7,16 @@
             <h3 class="card-title">Sale Detail</h3>
         </div>
         <div class="card-body">
+            @if (session('negative_stock_warning'))
+            <div class="alert alert-warning" role="alert">
+                <strong>Warning:</strong> the following products now have negative stock:
+                <ul class="mb-0">
+                    @foreach (session('negative_stock_warning') as $item)
+                    <li>{{ $item['product_reference'] }}: stock before sale {{ $item['stock_before'] }}, stock now {{ $item['stock_after'] }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
             <div class="row">
                 <div class="col-2">
                     <div class="form-group">

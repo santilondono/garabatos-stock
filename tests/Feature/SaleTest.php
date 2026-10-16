@@ -57,18 +57,84 @@ class SaleTest extends FeatureTestCase
 
     public function test_store_does_not_validate_available_stock(): void
     {
-        // Comportamiento actual: se puede vender más de lo que hay; el stock queda negativo.
+        // Se puede vender más de lo que hay: el stock queda negativo y se avisa
+        // con una advertencia que lista solo los productos afectados.
         $clientId = $this->createClient();
-        $p1 = $this->createProduct(['stock' => 1]);
+        $p1 = $this->createProduct(['product_reference' => 'REF-NEG-1', 'stock' => 1]);
+        $p2 = $this->createProduct(['product_reference' => 'REF-OK-1', 'stock' => 10]);
+
+        $response = $this->actingAs($this->createUser(self::ROLE_1))->post('/stock/sales', [
+            'client_id' => $clientId,
+            'product_id' => [$p1, $p2],
+            'quantity_sold' => [3, 4],
+            'sale_price' => [5, 5],
+        ]);
+
+        $sale = DB::table('sales')->where('client_id', $clientId)->first();
+        $this->assertNotNull($sale);
+        $this->assertSame(2, DB::table('sales_detail')->where('sale_id', $sale->sale_id)->count());
+        $response->assertRedirect(route('sales.show', $sale->sale_id));
+
+        $this->assertSame(-2, (int) $this->product($p1)->stock);
+        $this->assertSame(6, (int) $this->product($p2)->stock);
+
+        $response->assertSessionHas('negative_stock_warning', [
+            ['product_reference' => 'REF-NEG-1', 'stock_before' => 1, 'stock_after' => -2],
+        ]);
+
+        $this->get(route('sales.show', $sale->sale_id))
+            ->assertOk()
+            ->assertSee('alert-warning', false)
+            ->assertSee('REF-NEG-1: stock before sale 1, stock now -2');
+    }
+
+    public function test_store_with_same_product_in_several_lines_reports_stock_before_whole_sale(): void
+    {
+        $clientId = $this->createClient();
+        $p1 = $this->createProduct(['product_reference' => 'REF-NEG-2', 'stock' => 3]);
 
         $this->actingAs($this->createUser(self::ROLE_1))->post('/stock/sales', [
+            'client_id' => $clientId,
+            'product_id' => [$p1, $p1],
+            'quantity_sold' => [2, 2],
+            'sale_price' => [5, 5],
+        ])->assertSessionHas('negative_stock_warning', [
+            ['product_reference' => 'REF-NEG-2', 'stock_before' => 3, 'stock_after' => -1],
+        ]);
+
+        $this->assertSame(-1, (int) $this->product($p1)->stock);
+    }
+
+    public function test_store_with_enough_stock_has_no_warning(): void
+    {
+        $clientId = $this->createClient();
+        $p1 = $this->createProduct(['stock' => 3]);
+
+        $response = $this->actingAs($this->createUser(self::ROLE_1))->post('/stock/sales', [
             'client_id' => $clientId,
             'product_id' => [$p1],
             'quantity_sold' => [3],
             'sale_price' => [5],
         ]);
 
-        $this->assertSame(-2, (int) $this->product($p1)->stock);
+        $this->assertSame(0, (int) $this->product($p1)->stock);
+        $response->assertSessionMissing('negative_stock_warning');
+
+        $sale = DB::table('sales')->where('client_id', $clientId)->first();
+        $this->get(route('sales.show', $sale->sale_id))
+            ->assertOk()
+            ->assertDontSee('alert-warning', false);
+    }
+
+    public function test_create_form_includes_hidden_stock_warning(): void
+    {
+        $this->createProduct(['product_reference' => 'REF-FORM-1', 'stock' => 4]);
+
+        $this->actingAs($this->createUser(self::ROLE_1))
+            ->get('/stock/sales/create')
+            ->assertOk()
+            ->assertSee('id="stock_warning" class="alert alert-warning"', false)
+            ->assertSee('style="display: none;"', false);
     }
 
     public function test_store_requires_client_id(): void

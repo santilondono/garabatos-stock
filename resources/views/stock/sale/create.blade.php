@@ -61,6 +61,15 @@
 
                 <div class="row">
                     <div class="col-12">
+                        <div id="stock_warning" class="alert alert-warning" role="alert" style="display: none;">
+                            <strong>Warning:</strong> the total quantity exceeds the available stock for:
+                            <ul class="mb-0" id="stock_warning_list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
                         <table id="sale_details" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
@@ -124,6 +133,22 @@
     var total_sale = 0;
     total = 0;
 
+    // Cantidad total por producto entre todas las líneas, para avisar si supera el stock
+    var soldByProduct = {};
+
+    function updateStockWarning() {
+        var list = $('#stock_warning_list');
+        list.empty();
+
+        $.each(soldByProduct, function(id, item) {
+            if (item.quantity > item.stock) {
+                list.append($('<li>').text(item.name + ': ' + item.quantity + ' of ' + item.stock + ' available'));
+            }
+        });
+
+        $('#stock_warning').toggle(list.children().length > 0);
+    }
+
     function reset() {
         $('#select_product_id').selectpicker('val', '');
         $('#pquantity_sold').val('');
@@ -159,8 +184,17 @@
         $('#total_quantity').html('<h4>' + total_quantity + '</h4>');
         $('#total_sale').html('<h4>' + total_sale + '</h4>');
 
+        var removed_id = row.find('input[name="product_id[]"]').val();
+        if (soldByProduct[removed_id]) {
+            soldByProduct[removed_id].quantity -= sale;
+            if (soldByProduct[removed_id].quantity <= 0) {
+                delete soldByProduct[removed_id];
+            }
+        }
+
         row.remove();
         validate();
+        updateStockWarning();
     }
 
     function add() {
@@ -197,6 +231,12 @@
             $('#total_sale').html('<h4>' + total_sale + '</h4>');
             validate();
             $('#sale_details tbody').append(row);
+
+            if (!soldByProduct[product_id]) {
+                soldByProduct[product_id] = { name: product, stock: parseInt(stock), quantity: 0 };
+            }
+            soldByProduct[product_id].quantity += parseInt(quantity);
+            updateStockWarning();
         } else {
             alert('Error: Check the entered data');
         }
