@@ -41,6 +41,9 @@ class ReportController extends Controller
         $start_date = $start_date->format('Y-m-d');
         $end_date = $end_date->format('Y-m-d');
 
+        // La fecha final incluye todo el día (sale_date es DATETIME)
+        $date_range = [$start_date . ' 00:00:00', $end_date . ' 23:59:59'];
+
         $sales_summary = DB::table('sales')
             ->select(
                 'sales.sale_id',
@@ -55,7 +58,7 @@ class ReportController extends Controller
             ->join('clients', 'sales.client_id', '=', 'clients.client_id')
             ->where('is_cancelled', false)
             ->join('products', 'sales_detail.product_id', '=', 'products.product_id')
-            ->whereBetween('sale_date', [$start_date, $end_date])
+            ->whereBetween('sale_date', $date_range)
             ->groupBy('sales.sale_id', 'sale_date', 'users.name', 'clients.client_name', 'is_cancelled')
             ->orderByDesc('sales.sale_id')
             ->get();
@@ -68,7 +71,7 @@ class ReportController extends Controller
             ->join('sales_detail', 'sales.sale_id', '=', 'sales_detail.sale_id')
             ->where('is_cancelled', false)
             ->join('products', 'sales_detail.product_id', '=', 'products.product_id')
-            ->whereBetween('sale_date', [$start_date, $end_date])
+            ->whereBetween('sale_date', $date_range)
             ->first();
 
         return view('stock.report.sales_summary', [
@@ -87,6 +90,9 @@ class ReportController extends Controller
         $start_date = $start_date->format('Y-m-d');
         $end_date = $end_date->format('Y-m-d');
 
+        // La fecha final incluye todo el día (sale_date es DATETIME)
+        $date_range = [$start_date . ' 00:00:00', $end_date . ' 23:59:59'];
+
         // Consulta: 5 productos más vendidos
         $top_selling_products = DB::table('sales')
             ->select(
@@ -99,7 +105,7 @@ class ReportController extends Controller
             ->join('sales_detail', 'sales.sale_id', '=', 'sales_detail.sale_id')
             ->join('products', 'sales_detail.product_id', '=', 'products.product_id')
             ->where('is_cancelled', false)
-            ->whereBetween('sale_date', [$start_date, $end_date])
+            ->whereBetween('sale_date', $date_range)
             ->groupBy('products.product_reference', 'products.product_description')
             ->orderByDesc('quantity_sold')
             ->limit(5)
@@ -114,7 +120,7 @@ class ReportController extends Controller
             ->join('sales_detail', 'sales.sale_id', '=', 'sales_detail.sale_id')
             ->join('products', 'sales_detail.product_id', '=', 'products.product_id')
             ->where('is_cancelled', false)
-            ->whereBetween('sale_date', [$start_date, $end_date])
+            ->whereBetween('sale_date', $date_range)
             ->first();
             
         // Consulta: Dinero en bodega

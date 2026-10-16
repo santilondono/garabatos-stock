@@ -31,6 +31,8 @@ class ProfitReportTest extends FeatureTestCase
     private int $saleA;
     private int $saleB;
     private float $stockValueBaseline;
+    private int $userId;
+    private int $clientId;
 
     protected function setUp(): void
     {
@@ -41,6 +43,8 @@ class ProfitReportTest extends FeatureTestCase
 
         $user = $this->createUser(self::ROLE_3, ['name' => 'Vendedor Reporte']);
         $clientId = $this->createClient(['client_name' => 'Cliente Reporte']);
+        $this->userId = $user->id;
+        $this->clientId = $clientId;
 
         $this->p1 = $this->createProduct([
             'product_reference' => 'REF-P1', 'purchase_price' => 2, 'quantity' => 10, 'stock' => 7,
@@ -85,15 +89,110 @@ class ProfitReportTest extends FeatureTestCase
         $this->assertSame('Cliente Reporte', $rows[0]->client_name);
     }
 
-    public function test_sales_summary_end_date_excludes_sales_on_that_day(): void
+    public function test_sales_summary_end_date_includes_sales_on_that_day(): void
     {
-        // Comportamiento actual: whereBetween compara un DATETIME con 'Y-m-d',
-        // así que el día final se toma como 00:00:00 y las ventas de ese día quedan fuera.
-        $total = $this->get('/stock/print-sales-summary/2001-03-01/2001-03-15')
+        // La venta B (2001-03-15 10:00) cae en el día final y debe contarse.
+        $response = $this->get('/stock/print-sales-summary/2001-03-01/2001-03-15');
+
+        $total = $response->viewData('total_summary');
+        $this->assertEqualsWithDelta(199, (float) $total->gross_profit, 0.0001);
+        $this->assertEqualsWithDelta(112, (float) $total->net_profit, 0.0001);
+        $this->assertSame(
+            [$this->saleB, $this->saleA],
+            $response->viewData('sales_summary')->pluck('sale_id')->map(fn ($v) => (int) $v)->all()
+        );
+        $this->assertSame('2001-03-15', $response->viewData('end_date'));
+    }
+
+    /**
+     * Ventas en los bordes del rango 2001-03-10 .. 2001-03-15 (P1 x1 @5 => bruta 50, neta 30 cada una).
+     *
+     * @return array{first_second:int, last_second:int, next_day:int, day_before:int}
+     */
+    private function createBoundarySales(): array
+    {
+        $line = [['product_id' => $this->p1, 'quantity_sold' => 1, 'sale_price' => 5]];
+
+        return [
+            'first_second' => $this->createSale($this->userId, $this->clientId, '2001-03-10 00:00:00', $line),
+            'last_second' => $this->createSale($this->userId, $this->clientId, '2001-03-15 23:59:59', $line),
+            'next_day' => $this->createSale($this->userId, $this->clientId, '2001-03-16 00:00:00', $line),
+            'day_before' => $this->createSale($this->userId, $this->clientId, '2001-03-09 23:59:59', $line),
+        ];
+    }
+
+    public function test_sales_summary_range_boundaries(): void
+    {
+        $boundary = $this->createBoundarySales();
+
+        $response = $this->get('/stock/print-sales-summary/2001-03-10/2001-03-15');
+
+        $ids = $response->viewData('sales_summary')->pluck('sale_id')->map(fn ($v) => (int) $v)->all();
+        $this->assertContains($boundary['first_second'], $ids);
+        $this->assertContains($boundary['last_second'], $ids);
+        $this->assertNotContains($boundary['next_day'], $ids);
+        $this->assertNotContains($boundary['day_before'], $ids);
+        $this->assertCount(4, $ids);
+
+        // A (154/87) + B (45/25) + dos ventas de borde (50/30 cada una)
+        $total = $response->viewData('total_summary');
+        $this->assertEqualsWithDelta(299, (float) $total->gross_profit, 0.0001);
+        $this->assertEqualsWithDelta(172, (float) $total->net_profit, 0.0001);
+    }
+
+    public function test_sales_summary_single_day_range(): void
+    {
+        $total = $this->get('/stock/print-sales-summary/2001-03-15/2001-03-15')
             ->viewData('total_summary');
 
-        $this->assertEqualsWithDelta(154, (float) $total->gross_profit, 0.0001);
-        $this->assertEqualsWithDelta(87, (float) $total->net_profit, 0.0001);
+        $this->assertEqualsWithDelta(45, (float) $total->gross_profit, 0.0001);
+        $this->assertEqualsWithDelta(25, (float) $total->net_profit, 0.0001);
+    }
+
+    public function test_sales_summary_without_end_date_includes_todays_sales(): void
+    {
+        // Sin fecha final se sigue usando hoy como fin; ahora incluye las ventas de hoy.
+        $todaySale = $this->createSale($this->userId, $this->clientId, now()->format('Y-m-d H:i:s'), [
+            ['product_id' => $this->p1, 'quantity_sold' => 1, 'sale_price' => 5],
+        ]);
+
+        $response = $this->get('/stock/print-sales-summary/2001-03-01');
+
+        $this->assertSame(now()->format('Y-m-d'), $response->viewData('end_date'));
+        $this->assertContains(
+            $todaySale,
+            $response->viewData('sales_summary')->pluck('sale_id')->map(fn ($v) => (int) $v)->all()
+        );
+    }
+
+    public function test_cards_report_end_date_includes_whole_day_and_excludes_next_day(): void
+    {
+        $this->createBoundarySales();
+
+        $response = $this->get('/stock/cards?start_date=2001-03-10&end_date=2001-03-15')->assertOk();
+
+        $profits = $response->viewData('profits');
+        $this->assertEqualsWithDelta(299, (float) $profits->gross_profit, 0.0001);
+        $this->assertEqualsWithDelta(172, (float) $profits->net_profit, 0.0001);
+
+        // P1: 2 (A) + 1 (B) + 2 de borde = 5 ; P2: 3 (A)
+        $top = $response->viewData('top_selling_products')->keyBy('product_reference');
+        $this->assertSame(5, (int) $top['REF-P1']->quantity_sold);
+        $this->assertSame(3, (int) $top['REF-P2']->quantity_sold);
+    }
+
+    public function test_cards_report_without_end_date_includes_todays_sales(): void
+    {
+        $this->createSale($this->userId, $this->clientId, now()->format('Y-m-d H:i:s'), [
+            ['product_id' => $this->p2, 'quantity_sold' => 2, 'sale_price' => 3],
+        ]);
+
+        $response = $this->get('/stock/cards?start_date='.now()->format('Y-m-d'))->assertOk();
+
+        // Solo la venta de hoy: P2 x2 @3 => bruta 2*6*3 = 36 ; neta 2*6*(3-1.5) = 18
+        $this->assertSame(now()->format('Y-m-d'), $response->viewData('end_date'));
+        $this->assertEqualsWithDelta(36, (float) $response->viewData('profits')->gross_profit, 0.0001);
+        $this->assertEqualsWithDelta(18, (float) $response->viewData('profits')->net_profit, 0.0001);
     }
 
     public function test_net_profit_uses_current_purchase_price(): void
