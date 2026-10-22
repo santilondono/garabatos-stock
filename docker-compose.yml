@@ -1,0 +1,44 @@
+# Garabatos Stock en el NAS. Nombre fijo para no chocar con flyon-exports.
+name: garabatos
+
+services:
+  app:
+    build: .
+    image: garabatos-stock:latest
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./data/product-images:/var/www/html/public/dist/img
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 512m
+
+  db:
+    image: mariadb:11.8
+    restart: unless-stopped
+    # Sin `ports`: 3306 solo es accesible dentro de la red de compose.
+    env_file: .env.db
+    environment:
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=256M
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    mem_limit: 768m
+
+volumes:
+  db-data:
