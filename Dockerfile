@@ -1,12 +1,21 @@
 # syntax=docker/dockerfile:1
 # Imagen para el NAS (linux/arm64); también construye en amd64.
 # Nunca ejecuta `php artisan migrate`: la base de producción ya tiene su esquema.
+#
+# Espejos chinos por defecto (el NAS está en China). Para usar los orígenes oficiales:
+#   docker compose build --build-arg APT_MIRROR= --build-arg NPM_REGISTRY= --build-arg COMPOSER_MIRROR=
+ARG APT_MIRROR=mirrors.aliyun.com
+ARG NPM_REGISTRY=https://registry.npmmirror.com
+ARG COMPOSER_MIRROR=https://mirrors.aliyun.com/composer/
 
 # ---- Assets (Vite -> public/build) ----
 FROM node:20-bookworm-slim AS assets
+ARG NPM_REGISTRY
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# npm reemplaza registry.npmjs.org de package-lock.json por el registro configurado.
+RUN if [ -n "$NPM_REGISTRY" ]; then npm config set registry "$NPM_REGISTRY"; fi \
+    && npm ci
 COPY vite.config.js ./
 COPY resources ./resources
 RUN npm run build
@@ -16,6 +25,20 @@ FROM composer:2 AS composer
 
 # ---- Aplicación ----
 FROM php:8.2-apache
+ARG APT_MIRROR
+ARG COMPOSER_MIRROR
+
+# Espejo de apt (incluye debian-security). La imagen trae ca-certificates, así que va por https.
+RUN if [ -n "$APT_MIRROR" ]; then \
+        for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
+            [ -f "$f" ] || continue; \
+            sed -ri \
+                -e "s#https?://deb\.debian\.org/#https://${APT_MIRROR}/#g" \
+                -e "s#https?://security\.debian\.org/debian-security#https://${APT_MIRROR}/debian-security#g" \
+                -e "s#https?://security\.debian\.org/?([[:space:]]|\$)#https://${APT_MIRROR}/debian-security\1#g" \
+                "$f"; \
+        done; \
+    fi
 
 # mbstring, ctype, tokenizer, fileinfo, dom, openssl ya vienen compiladas en la imagen oficial.
 RUN apt-get update \
@@ -37,6 +60,7 @@ RUN a2enmod rewrite \
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN if [ -n "$COMPOSER_MIRROR" ]; then composer config -g repos.packagist composer "$COMPOSER_MIRROR"; fi
 
 WORKDIR /var/www/html
 

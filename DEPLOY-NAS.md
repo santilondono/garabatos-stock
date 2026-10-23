@@ -36,6 +36,15 @@ El volumen **tapa** lo que trae git en `public/dist/img`, incluido `garabatos_lo
 
 `./storage` (logs, sesiones y caché) también es persistente.
 
+## Espejos (China)
+
+El `Dockerfile` usa espejos chinos por defecto: Aliyun para apt y Composer, y npmmirror para npm. Para construir fuera de China con los orígenes oficiales, deja los argumentos vacíos:
+
+```sh
+docker compose build --build-arg APT_MIRROR= --build-arg NPM_REGISTRY= --build-arg COMPOSER_MIRROR=
+docker compose up -d
+```
+
 ## Actualizar
 
 ```sh
