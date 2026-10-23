@@ -70,8 +70,11 @@ RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --pr
 COPY . .
 COPY --from=assets /app/public/build ./public/build
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction \
-    && mkdir -p public/dist/img \
+# storage/ puede no venir en el contexto (en el NAS es un volumen): crear la estructura
+# antes de que `composer install` ejecute package:discover, que arranca Laravel.
+RUN mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions \
+        storage/framework/views storage/logs bootstrap/cache public/dist/img \
+    && composer install --no-dev --optimize-autoloader --no-interaction \
     && chown -R www-data:www-data storage bootstrap/cache public/dist/img \
     && chmod -R ug+rwX storage bootstrap/cache
 

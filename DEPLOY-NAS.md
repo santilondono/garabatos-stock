@@ -34,7 +34,7 @@ Las fotos viven en `./data/product-images`, que se monta sobre `public/dist/img`
 
 El volumen **tapa** lo que trae git en `public/dist/img`, incluido `garabatos_logo.png` (logo del login y del menú). Por eso el primer arranque las copia con `cp -n`, que no sobrescribe nada.
 
-`./storage` (logs, sesiones y caché) también es persistente.
+`./storage` (logs, sesiones y caché) también es persistente. No hace falta copiarla al NAS: si la carpeta no existe o llega vacía, el contenedor crea la estructura al arrancar y le da permisos a `www-data`. La imagen tampoco depende de ella para construirse.
 
 ## Espejos (China)
 
