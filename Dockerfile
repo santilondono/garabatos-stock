@@ -50,6 +50,8 @@ RUN apt-get update \
 
 COPY docker/php.ini "$PHP_INI_DIR/conf.d/zz-garabatos.ini"
 COPY docker/mpm_prefork.conf /etc/apache2/mods-available/mpm_prefork.conf
+# El contexto puede llegar por SMB con permisos solo para el dueño.
+RUN chmod 644 "$PHP_INI_DIR/conf.d/zz-garabatos.ini" /etc/apache2/mods-available/mpm_prefork.conf
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN a2enmod rewrite \
@@ -70,6 +72,15 @@ RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --pr
 COPY . .
 COPY --from=assets /app/public/build ./public/build
 
+# Permisos independientes del contexto (por SMB llegan solo para el dueño y Apache
+# no puede leer .htaccess): directorios 755 y archivos 644. vendor/ lo genera composer
+# dentro de la imagen; storage y bootstrap/cache se ajustan abajo para www-data.
+RUN find . \( -path ./vendor -o -path ./storage -o -path ./bootstrap/cache \) -prune \
+        -o -type d -exec chmod 755 {} + \
+    && find . \( -path ./vendor -o -path ./storage -o -path ./bootstrap/cache \) -prune \
+        -o -type f -exec chmod 644 {} + \
+    && chmod 755 artisan
+
 # storage/ puede no venir en el contexto (en el NAS es un volumen): crear la estructura
 # antes de que `composer install` ejecute package:discover, que arranca Laravel.
 RUN mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions \
@@ -79,7 +90,7 @@ RUN mkdir -p storage/app/public storage/framework/cache/data storage/framework/s
     && chmod -R ug+rwX storage bootstrap/cache
 
 COPY docker/entrypoint.sh /usr/local/bin/garabatos-entrypoint
-RUN chmod +x /usr/local/bin/garabatos-entrypoint
+RUN chmod 755 /usr/local/bin/garabatos-entrypoint
 
 EXPOSE 80
 ENTRYPOINT ["garabatos-entrypoint"]
